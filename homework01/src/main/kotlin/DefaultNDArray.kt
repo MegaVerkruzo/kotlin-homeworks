@@ -1,4 +1,12 @@
 interface NDArray : SizeAware, DimentionAware {
+    fun findIndexInData(point: Point): Int
+
+    fun findIndexInDataOrNull(point: Point): Int?
+
+    fun getByIndexOrNull(index: Int): Int?
+
+    fun setByIndexOrNothing(index: Int, value: Int)
+
     /*
      * Получаем значение по индексу point
      *
@@ -88,7 +96,7 @@ class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) :
     override val ndim: Int
         get() = shape.ndim
 
-    private fun findIndexInData(point: Point): Int {
+    override fun findIndexInData(point: Point): Int {
         if (point.ndim != ndim) throw NDArrayException.IllegalPointDimensionException(point.ndim, ndim)
         (0 until point.ndim).forEach {
             if (point.dim(it) !in 1..shape.dim(it)) throw NDArrayException.IllegalPointCoordinateException(
@@ -97,14 +105,24 @@ class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) :
                 shape.dim(it)
             )
         }
+        return findIndexInDataOrNull(point)
+    }
 
+    override fun findIndexInDataOrNull(point: Point): Int {
         var indexInData: Int = 0
-        var sizeWithoutPreviousDimensions: Int = size
+        var sizeWithPreviousDimensions: Int = 1
         (0 until ndim).forEach { index ->
-            sizeWithoutPreviousDimensions /= shape.dim(index)
-            indexInData += (point.dim(index) - 1) * sizeWithoutPreviousDimensions
+            indexInData += (point.dim(index) - 1) * sizeWithPreviousDimensions
+            sizeWithPreviousDimensions *= shape.dim(index)
         }
         return indexInData
+    }
+
+    override fun getByIndexOrNull(index: Int): Int? = data.getOrNull(index)
+
+    override fun setByIndexOrNothing(index: Int, value: Int) {
+        if (index !in (0 until size)) return
+        data[index] += value
     }
 
     override fun at(point: Point): Int = data[findIndexInData(point)]
@@ -113,25 +131,67 @@ class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) :
         data[findIndexInData(point)] = value
     }
 
-    override fun copy(): NDArray {
-        TODO("Not yet implemented")
-    }
+    override fun copy(): NDArray = DefaultNDArray(shape, data.copyOf())
 
-    override fun view(): NDArray {
-        TODO("Not yet implemented")
-    }
+    override fun view(): NDArray = this
 
     override fun add(other: NDArray) {
-        if (ndim - other.ndim > 1) throw NDArrayException.IllegalOperationShapeSizeException(
+        if (ndim - other.ndim > 1 || ndim < other.ndim) throw NDArrayException.IllegalOperationShapeSizeException(
             Operation.ADD,
             ndim,
             other.ndim
         )
-
+        (0 until other.ndim).forEach {
+            if (dim(it) != other.dim(it)) throw NDArrayException.IllegalOperationShapeSizeException(
+                Operation.ADD,
+                ndim,
+                other.ndim
+            )
+        }
+        if (ndim == other.ndim + 1) {
+            val sizeWithoutLastDimension: Int = size / shape.dim(ndim - 1)
+            (0 until shape.dim(ndim - 1)).forEach { indexOfLastDimension ->
+                (0 until sizeWithoutLastDimension).forEach { indexOfFirstDimensions ->
+                    data[indexOfLastDimension * sizeWithoutLastDimension + indexOfFirstDimensions] +=
+                        other.getByIndexOrNull(indexOfFirstDimensions)
+                            ?: throw NDArrayException.IllegalOperationShapeSizeException(
+                                Operation.ADD,
+                                ndim,
+                                other.ndim
+                            )
+                }
+            }
+        }
+        (0 until size).forEach {
+            data[it] += other.getByIndexOrNull(it) ?: throw NDArrayException.IllegalOperationShapeSizeException(
+                Operation.ADD,
+                ndim,
+                other.ndim
+            )
+        }
     }
 
     override fun dot(other: NDArray): NDArray {
-        TODO("Not yet implemented")
+        if (!(ndim == 2 && other.ndim <= 2 && shape.dim(1) == other.dim(0))) throw NDArrayException.IllegalOperationShapeSizeException(
+            Operation.DOT,
+            ndim,
+            other.ndim
+        )
+        val countTables: Int = if (other.ndim >= 2) other.dim(1) else 1
+        val countK: Int = shape.dim(1)
+        val result: NDArray = DefaultNDArray.zeros(DefaultShape(shape.dim(0), countTables))
+        for (i in (0 until shape.dim(0))) {
+            for (j in (0 until countTables)) {
+                for (k in (0 until countK)) {
+                    val indexOfNewTable: Int = i * countTables + j
+                    result.setByIndexOrNothing(indexOfNewTable,
+                        (result.getByIndexOrNull(indexOfNewTable) ?: 0)
+                                + data[i * countK + k] * (other.getByIndexOrNull(j + i * countTables) ?: 0)
+                    )
+                }
+            }
+        }
+        return result
     }
 
     override fun dim(i: Int): Int = shape.dim(i)
@@ -155,6 +215,8 @@ sealed class NDArrayException(reason: String = "") : Exception(reason) {
 
     class IllegalPointDimensionException(pointDimension: Int, shapeDimension: Int) :
         NDArrayException("pointDimension = $pointDimension isn't equal shapeDimension = $shapeDimension")
+
+
 }
 
 enum class Operation(val text: String) {
