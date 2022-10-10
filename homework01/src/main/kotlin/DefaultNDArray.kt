@@ -88,12 +88,29 @@ class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) :
     override val ndim: Int
         get() = shape.ndim
 
-    override fun at(point: Point): Int {
-        TODO("Not yet implemented")
+    private fun findIndexInData(point: Point): Int {
+        if (point.ndim != ndim) throw NDArrayException.IllegalPointDimensionException(point.ndim, ndim)
+        (0 until point.ndim).forEach {
+            if (point.dim(it) !in 1..shape.dim(it)) throw NDArrayException.IllegalPointCoordinateException(
+                it,
+                point.dim(it),
+                shape.dim(it)
+            )
+        }
+
+        var indexInData: Int = 0
+        var sizeWithoutPreviousDimensions: Int = size
+        (0 until ndim).forEach { index ->
+            sizeWithoutPreviousDimensions /= shape.dim(index)
+            indexInData += (point.dim(index) - 1) * sizeWithoutPreviousDimensions
+        }
+        return indexInData
     }
 
+    override fun at(point: Point): Int = data[findIndexInData(point)]
+
     override fun set(point: Point, value: Int) {
-        TODO("Not yet implemented")
+        data[findIndexInData(point)] = value
     }
 
     override fun copy(): NDArray {
@@ -105,7 +122,12 @@ class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) :
     }
 
     override fun add(other: NDArray) {
-        TODO("Not yet implemented")
+        if (ndim - other.ndim > 1) throw NDArrayException.IllegalOperationShapeSizeException(
+            Operation.ADD,
+            ndim,
+            other.ndim
+        )
+
     }
 
     override fun dot(other: NDArray): NDArray {
@@ -122,7 +144,20 @@ class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) :
 
 }
 
-sealed class NDArrayException : Exception() {
-    class IllegalPointCoordinateException : NDArrayException()
-    // IllegalPointDimensionException
+sealed class NDArrayException(reason: String = "") : Exception(reason) {
+    class IllegalPointCoordinateException(indexDimension: Int, pointSize: Int, shapeSize: Int) : NDArrayException(
+        "On Dimension with index = $indexDimension, point has size = $pointSize, but shape's size is $shapeSize"
+    )
+
+    class IllegalOperationShapeSizeException(operation: Operation, currentNDim: Int, otherNDim: Int) : NDArrayException(
+        "In operation ${operation.text} currentShape ndim is $currentNDim and other's ndim is $otherNDim"
+    )
+
+    class IllegalPointDimensionException(pointDimension: Int, shapeDimension: Int) :
+        NDArrayException("pointDimension = $pointDimension isn't equal shapeDimension = $shapeDimension")
+}
+
+enum class Operation(val text: String) {
+    ADD("Add"),
+    DOT("Dot")
 }
