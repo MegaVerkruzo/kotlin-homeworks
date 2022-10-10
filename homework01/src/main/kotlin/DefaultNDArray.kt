@@ -1,5 +1,4 @@
-
-interface NDArray: SizeAware, DimentionAware {
+interface NDArray : SizeAware, DimentionAware {
     /*
      * Получаем значение по индексу point
      *
@@ -83,11 +82,47 @@ interface NDArray: SizeAware, DimentionAware {
  *
  * Инициализация - через factory-методы ones(shape: Shape), zeros(shape: Shape) и метод copy
  */
-class DefaultNDArray: NDArray {
+class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) : NDArray {
+    override val size: Int
+        get() = shape.size
+    override val ndim: Int
+        get() = shape.ndim
+
+    override fun at(point: Point): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun set(point: Point, value: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun copy(): NDArray {
+        TODO("Not yet implemented")
+    }
+
+    override fun view(): NDArray {
+        TODO("Not yet implemented")
+    }
+
+    override fun add(other: NDArray) {
+        TODO("Not yet implemented")
+    }
+
+    override fun dot(other: NDArray): NDArray {
+        TODO("Not yet implemented")
+    }
+
+    override fun dim(i: Int): Int = shape.dim(i)
+
+    companion object {
+        fun ones(shape: Shape): DefaultNDArray = DefaultNDArray(shape, IntArray(shape.size) { 1 })
+
+        fun zeros(shape: Shape): DefaultNDArray = DefaultNDArray(shape, IntArray(shape.size) { 0 })
+    }
+
 }
 
 sealed class NDArrayException : Exception() {
-    /* TODO: реализовать требуемые исключения */
-    // IllegalPointCoordinateException
+    class IllegalPointCoordinateException : NDArrayException()
     // IllegalPointDimensionException
 }
