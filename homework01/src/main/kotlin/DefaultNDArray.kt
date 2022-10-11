@@ -99,7 +99,7 @@ class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) :
     override fun findIndexInData(point: Point): Int {
         if (point.ndim != ndim) throw NDArrayException.IllegalPointDimensionException(point.ndim, ndim)
         (0 until point.ndim).forEach {
-            if (point.dim(it) !in 1..shape.dim(it)) throw NDArrayException.IllegalPointCoordinateException(
+            if (point.dim(it) !in 0 until shape.dim(it)) throw NDArrayException.IllegalPointCoordinateException(
                 it,
                 point.dim(it),
                 shape.dim(it)
@@ -112,7 +112,7 @@ class DefaultNDArray private constructor(val shape: Shape, val data: IntArray) :
         var indexInData: Int = 0
         var sizeWithPreviousDimensions: Int = 1
         (0 until ndim).forEach { index ->
-            indexInData += (point.dim(index) - 1) * sizeWithPreviousDimensions
+            indexInData += point.dim(index) * sizeWithPreviousDimensions
             sizeWithPreviousDimensions *= shape.dim(index)
         }
         return indexInData
