@@ -21,8 +21,12 @@ class DefaultShape(private vararg val dimentions: Int) : Shape {
         accumulator * element
     }
 
+    constructor() : this(*IntArray(0)) {
+        throw ShapeArgumentException.EmptyShapeException()
+    }
     init {
-        if (ndim == 0) throw ShapeArgumentException.EmptyShapeException()
+        println("smth ${dimentions.joinToString(" ")}")
+        if (dimentions.isEmpty()) throw ShapeArgumentException.EmptyShapeException()
 
         val firstIncorrectIndex = dimentions.indexOfFirst { it <= 0 }
         if (firstIncorrectIndex != -1) throw ShapeArgumentException.NonPositiveDimensionException(
@@ -35,7 +39,7 @@ class DefaultShape(private vararg val dimentions: Int) : Shape {
 }
 
 sealed class ShapeArgumentException(reason: String = "") : IllegalArgumentException(reason) {
-    class EmptyShapeException : ShapeArgumentException("Shape must have at least 1 dimention")
+    class EmptyShapeException() : ShapeArgumentException("Shape must have at least 1 dimention")
 
     class NonPositiveDimensionException(val index: Int, val value: Int?) :
         ShapeArgumentException(if (value == null) "Incorrect index = $index of dimention" else "Dimention with index = $index has incorrect value = $value")
