@@ -1,5 +1,5 @@
 
-interface Point: DimentionAware
+interface Point: DimensionAware
 
 /**
  * Реализация Point по умолчаению
@@ -11,17 +11,17 @@ interface Point: DimentionAware
  *
  * Сама коллекция параметров недоступна, доступ - через методы интерфейса
  */
-class DefaultPoint(private vararg val dimentions: Int) : Point {
+class DefaultPoint(private vararg val dimensions: Int) : Point {
     override val ndim: Int
-        get() = dimentions.size
+        get() = dimensions.size
 
     init {
-        if (dimentions.isEmpty()) throw PointArgumentException.EmptyPointException()
+        if (dimensions.isEmpty()) throw PointArgumentException.EmptyPointException()
     }
 
-    override fun dim(i: Int): Int = dimentions[i]
+    override fun dim(i: Int): Int = dimensions[i]
 }
 
 sealed class PointArgumentException(reason: String = "") : IllegalArgumentException(reason) {
-    class EmptyPointException : PointArgumentException("Point must have at least 1 dimention")
+    class EmptyPointException : PointArgumentException("Point must have at least 1 dimension")
 }

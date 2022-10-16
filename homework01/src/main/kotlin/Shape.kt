@@ -1,4 +1,4 @@
-interface Shape : DimentionAware, SizeAware
+interface Shape : DimensionAware, SizeAware
 
 /**
  * Реализация Point по умолчаению
@@ -13,11 +13,11 @@ interface Shape : DimentionAware, SizeAware
  *
  * Сама коллекция параметров недоступна, доступ - через методы интерфейса
  */
-class DefaultShape(private vararg val dimentions: Int) : Shape {
+class DefaultShape(private vararg val dimensions: Int) : Shape {
     override val ndim: Int
-        get() = dimentions.size
+        get() = dimensions.size
 
-    override val size: Int = dimentions.reduce { accumulator, element ->
+    override val size: Int = dimensions.reduce { accumulator, element ->
         accumulator * element
     }
 
@@ -25,22 +25,22 @@ class DefaultShape(private vararg val dimentions: Int) : Shape {
         throw ShapeArgumentException.EmptyShapeException()
     }
     init {
-        println("smth ${dimentions.joinToString(" ")}")
-        if (dimentions.isEmpty()) throw ShapeArgumentException.EmptyShapeException()
+        println("smth ${dimensions.joinToString(" ")}")
+        if (dimensions.isEmpty()) throw ShapeArgumentException.EmptyShapeException()
 
-        val firstIncorrectIndex = dimentions.indexOfFirst { it <= 0 }
+        val firstIncorrectIndex = dimensions.indexOfFirst { it <= 0 }
         if (firstIncorrectIndex != -1) throw ShapeArgumentException.NonPositiveDimensionException(
             firstIncorrectIndex,
-            dimentions[firstIncorrectIndex]
+            dimensions[firstIncorrectIndex]
         )
     }
 
-    override fun dim(i: Int): Int = dimentions.getOrNull(i) ?: throw ShapeArgumentException.NonPositiveDimensionException(i, null)
+    override fun dim(i: Int): Int = dimensions.getOrNull(i) ?: throw ShapeArgumentException.NonPositiveDimensionException(i, null)
 }
 
 sealed class ShapeArgumentException(reason: String = "") : IllegalArgumentException(reason) {
-    class EmptyShapeException() : ShapeArgumentException("Shape must have at least 1 dimention")
+    class EmptyShapeException() : ShapeArgumentException("Shape must have at least 1 dimension")
 
     class NonPositiveDimensionException(val index: Int, val value: Int?) :
-        ShapeArgumentException(if (value == null) "Incorrect index = $index of dimention" else "Dimention with index = $index has incorrect value = $value")
+        ShapeArgumentException(if (value == null) "Incorrect index = $index of dimension" else "Dimension with index = $index has incorrect value = $value")
 }

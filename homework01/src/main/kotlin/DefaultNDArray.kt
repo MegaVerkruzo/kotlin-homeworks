@@ -1,4 +1,4 @@
-interface NDArray : SizeAware, DimentionAware {
+interface NDArray : SizeAware, DimensionAware {
     fun findIndexInData(point: Point): Int
 
     fun findIndexInDataOrNull(point: Point): Int?
