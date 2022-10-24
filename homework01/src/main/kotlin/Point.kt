@@ -1,4 +1,3 @@
-
 interface Point: DimensionAware
 
 /**

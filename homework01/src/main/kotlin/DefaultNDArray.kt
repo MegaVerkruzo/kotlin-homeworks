@@ -215,8 +215,6 @@ sealed class NDArrayException(reason: String = "") : Exception(reason) {
 
     class IllegalPointDimensionException(pointDimension: Int, shapeDimension: Int) :
         NDArrayException("pointDimension = $pointDimension isn't equal shapeDimension = $shapeDimension")
-
-
 }
 
 enum class Operation(val text: String) {

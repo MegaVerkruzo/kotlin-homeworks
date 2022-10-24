@@ -1,4 +1,3 @@
-
 interface DimensionAware {
     val ndim: Int
 
