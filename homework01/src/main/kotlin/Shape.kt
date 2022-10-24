@@ -17,16 +17,14 @@ class DefaultShape(private vararg val dimensions: Int) : Shape {
     override val ndim: Int
         get() = dimensions.size
 
-    override val size: Int = dimensions.reduce { accumulator, element ->
-        accumulator * element
-    }
+    override var size: Int = 0
 
-    constructor() : this(*IntArray(0)) {
-        throw ShapeArgumentException.EmptyShapeException()
-    }
     init {
-        println("smth ${dimensions.joinToString(" ")}")
         if (dimensions.isEmpty()) throw ShapeArgumentException.EmptyShapeException()
+
+        size = dimensions.reduce { accumulator, element ->
+            accumulator * element
+        }
 
         val firstIncorrectIndex = dimensions.indexOfFirst { it <= 0 }
         if (firstIncorrectIndex != -1) throw ShapeArgumentException.NonPositiveDimensionException(
