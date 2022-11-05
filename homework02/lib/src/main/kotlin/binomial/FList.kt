@@ -64,7 +64,7 @@ sealed class FList<T>: Iterable<T> {
 
         override fun <U> fold(base: U, f: (U, T) -> U): U = base
 
-        override fun iterator(): Iterator<T> = listOf<T>().iterator()
+        override fun iterator(): Iterator<T> = FListIterator(null, nil())
     }
 
     data class Cons<T>(val head: T, val tail: FList<T>) : FList<T>() {
@@ -79,10 +79,24 @@ sealed class FList<T>: Iterable<T> {
 
         override fun <U> map(f: (T) -> U): FList<U> = Cons(f(head), tail.map(f))
 
-        override fun iterator(): Iterator<T> {
-            TODO("Not yet implemented")
+        override fun iterator(): Iterator<T> = FListIterator(head, tail)
+    }
+
+    class FListIterator<T>(private var head: T?, private var tail: FList<T>): Iterator<T> {
+        override fun hasNext(): Boolean = head != null
+
+        override fun next(): T {
+            val result: T = head!!
+            if (tail is Nil<T>) {
+                head = null
+            } else {
+                head = (tail as Cons<T>).head
+                tail = (tail as Cons<T>).tail
+            }
+            return result
         }
     }
+
 
     companion object {
         fun <T> nil() = Nil<T>()
