@@ -77,9 +77,7 @@ sealed class FList<T>: Iterable<T> {
 
         override fun filter(f: (T) -> Boolean): FList<T> = if (f(head)) Cons(head, tail.filter(f)) else tail.filter(f)
 
-        override fun <U> map(f: (T) -> U): FList<U> {
-            TODO("Not yet implemented")
-        }
+        override fun <U> map(f: (T) -> U): FList<U> = Cons(f(head), tail.map(f))
 
         override fun iterator(): Iterator<T> {
             TODO("Not yet implemented")
