@@ -1,5 +1,7 @@
 package binomial
 
+import java.util.*
+
 /*
  * FList - реализация функционального списка
  *
@@ -92,6 +94,4 @@ sealed class FList<T>: Iterable<T> {
 
 // конструирование функционального списка в порядке следования элементов
 // требуемая сложность - O(n)
-fun <T> flistOf(vararg values: T): FList<T> {
-    TODO()
-}
+fun <T> flistOf(vararg values: T): FList<T> = if (values.isEmpty()) FList.nil() else FList.Cons(values[0], flistOf(*(values.copyOfRange(1, values.size))))
