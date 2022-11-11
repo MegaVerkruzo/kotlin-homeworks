@@ -1,7 +1,5 @@
 package binomial
 
-import java.util.*
-
 /*
  * FList - реализация функционального списка
  *
@@ -16,6 +14,7 @@ import java.util.*
  *  Исключение Array-параметр в функции flistOf. Но даже в ней нельзя использовать цикл и forEach.
  *  Только обращение по индексу
  */
+
 sealed class FList<T>: Iterable<T> {
     // размер списка, 0 для Nil, количество элементов в цепочке для Cons
     abstract val size: Int
