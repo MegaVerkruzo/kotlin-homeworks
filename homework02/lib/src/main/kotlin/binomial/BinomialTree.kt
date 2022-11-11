@@ -40,9 +40,9 @@ class BinomialTree<T: Comparable<T>> private constructor(val value: T, val child
             throw IllegalArgumentException("Trees has orders: ${other.order} and $order, which aren't compatible")
         }
         return if (value < other.value) {
-            BinomialTree(value, FList.Cons(other, children.reverse()).reverse())
+            BinomialTree(value, FList.Cons(other, children))
         } else {
-            BinomialTree(other.value, FList.Cons(this, other.children.reverse()).reverse())
+            BinomialTree(other.value, FList.Cons(this, other.children))
         }
     }
 
