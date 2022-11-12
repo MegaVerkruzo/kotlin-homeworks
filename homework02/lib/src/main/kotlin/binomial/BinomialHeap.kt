@@ -25,7 +25,7 @@ package binomial
  */
 class BinomialHeap<T: Comparable<T>> private constructor(private val trees: FList<BinomialTree<T>?>): SelfMergeable<BinomialHeap<T>> {
     companion object {
-        fun <T: Comparable<T>> single(value: T): BinomialHeap<T> = TODO()
+        fun <T: Comparable<T>> single(value: T): BinomialHeap<T> = BinomialHeap(flistOf(BinomialTree.single(value)))
     }
 
     /*
@@ -33,7 +33,9 @@ class BinomialHeap<T: Comparable<T>> private constructor(private val trees: FLis
      *
      * Требуемая сложность - O(log(n))
      */
-    override fun plus(other :BinomialHeap<T>): BinomialHeap<T> = TODO()
+    override fun plus(other :BinomialHeap<T>): BinomialHeap<T> {
+        val
+    }
 
     /*
      * добавление элемента
@@ -47,8 +49,10 @@ class BinomialHeap<T: Comparable<T>> private constructor(private val trees: FLis
      *
      * Требуемая сложность - O(log(n))
      */
-    fun top(): T {
-        TODO()
+    fun top(): T = trees.fold((trees as FList.Cons?)?.head?.value ?: throw IllegalArgumentException("Heap must have at least 1 vertex"))
+    { acc: T, currentTree: BinomialTree<T>? ->
+        val currentTreeValue: T = currentTree?.value ?: throw IllegalArgumentException("Heap must have at least 1 vertex")
+        if (acc < currentTreeValue) acc else currentTreeValue
     }
 
     /*
