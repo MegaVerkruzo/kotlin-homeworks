@@ -82,12 +82,19 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
     }
 
     /*
-     * удаление элемента
+     * удаление элементIllegal argumentsа
      *
      * Требуемая сложность - O(log(n))
      */
     fun drop(): BinomialHeap<T> {
-        TODO()
+        val reversedTrees: FList.Cons<BinomialTree<T>?> = (trees.reverse() as? FList.Cons<BinomialTree<T>?>) ?: throw IllegalArgumentException("No trees in the heap")
+
+        val theSmallestTreeOrder: Int = reversedTrees.head?.order ?: throw IllegalArgumentException("No trees in the heap")
+
+        return if (theSmallestTreeOrder > 0) BinomialHeap(reversedTrees.tail.reverse())
+        else BinomialHeap(reversedTrees.head.children.fold(reversedTrees.tail) {acc : FList<BinomialTree<T>?>, currentTree: BinomialTree<T> ->
+            FList.Cons(currentTree, acc)
+        }.reverse())
     }
 }
 
