@@ -42,22 +42,36 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
     override fun plus(other: BinomialHeap<T>): BinomialHeap<T> =
         BinomialHeap(
             trees.reverse()
-                .fold(flistOf()) { acc: FList<BinomialTree<T>?>, currentTree: BinomialTree<T>? ->
-                    val accTail: FList<BinomialTree<T>?> = (acc as? FList.Cons)?.tail ?: FList.nil()
+                .fold(Pair(flistOf(), 0)) { acc: Pair<FList<BinomialTree<T>?>, Int>, currentTree: BinomialTree<T>? ->
+                    val currentOrder: Int = currentTree?.order ?: throw IllegalArgumentException("Heap can't be empty")
                     val firstBinomialTree: BinomialTree<T>? =
-                        if ((acc as? FList.Cons)?.head?.order == currentTree?.order && currentTree != null && (acc as FList.Cons).head != null) acc.head?.plus(
+                        if ((acc.first as? FList.Cons)?.head?.order == currentOrder && (acc.first as FList.Cons).head != null) (acc.first as FList.Cons<BinomialTree<T>?>).head?.plus(
                             currentTree
                         ) else null
-                    val necessaryTree: BinomialTree<T>? = other.findByOrder(currentTree?.order ?: -1)
-                    if (firstBinomialTree != null && necessaryTree != null) {
-                        FList.Cons(firstBinomialTree, FList.Cons(necessaryTree, accTail))
-                    } else if (firstBinomialTree != null) {
-                        FList.Cons(firstBinomialTree, accTail)
-                    } else {
-                        val mergedTree: BinomialTree<T>? = necessaryTree?.plus(currentTree ?: throw IllegalArgumentException("Merging uncorrect values")) ?: currentTree
-                        FList.Cons(mergedTree, accTail)
+                    val otherTail: FList<BinomialTree<T>?> = other.trees.filter { currentOtherTree: BinomialTree<T>? ->
+                        currentOtherTree?.order in (acc.second..currentOrder)
+                    }.reverse()
+                    val accTail: FList<BinomialTree<T>?> = otherTail.fold(
+                        (acc.first as? FList.Cons)?.tail ?: FList.nil()
+                    ) { accOfAcc: FList<BinomialTree<T>?>, currentTailTree: BinomialTree<T>? ->
+                        FList.Cons(currentTailTree, accOfAcc)
                     }
-                }.reverse())
+                    val necessaryTree: BinomialTree<T>? = other.findByOrder(currentOrder)
+                    if (firstBinomialTree != null && necessaryTree != null) {
+                        Pair<FList<BinomialTree<T>?>, Int>(
+                            FList.Cons(
+                                firstBinomialTree,
+                                FList.Cons(necessaryTree, accTail)
+                            ), currentOrder + 1
+                        )
+                    } else if (firstBinomialTree != null) {
+                        Pair<FList<BinomialTree<T>?>, Int>(FList.Cons(firstBinomialTree, accTail), currentOrder + 1)
+                    } else {
+                        val mergedTree: BinomialTree<T>? = necessaryTree?.plus(currentTree) ?: currentTree
+                        Pair<FList<BinomialTree<T>?>, Int>(FList.Cons(mergedTree, accTail), currentOrder + 1)
+                    }
+                }.first
+        )
 
 
     /*
@@ -87,12 +101,14 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
      * Требуемая сложность - O(log(n))
      */
     fun drop(): BinomialHeap<T> {
-        val reversedTrees: FList.Cons<BinomialTree<T>?> = (trees.reverse() as? FList.Cons<BinomialTree<T>?>) ?: throw IllegalArgumentException("No trees in the heap")
+        val reversedTrees: FList.Cons<BinomialTree<T>?> =
+            (trees.reverse() as? FList.Cons<BinomialTree<T>?>) ?: throw IllegalArgumentException("No trees in the heap")
 
-        val theSmallestTreeOrder: Int = reversedTrees.head?.order ?: throw IllegalArgumentException("No trees in the heap")
+        val theSmallestTreeOrder: Int =
+            reversedTrees.head?.order ?: throw IllegalArgumentException("No trees in the heap")
 
         return if (theSmallestTreeOrder > 0) BinomialHeap(reversedTrees.tail.reverse())
-        else BinomialHeap(reversedTrees.head.children.fold(reversedTrees.tail) {acc : FList<BinomialTree<T>?>, currentTree: BinomialTree<T> ->
+        else BinomialHeap(reversedTrees.head.children.fold(reversedTrees.tail) { acc: FList<BinomialTree<T>?>, currentTree: BinomialTree<T> ->
             FList.Cons(currentTree, acc)
         }.reverse())
     }
