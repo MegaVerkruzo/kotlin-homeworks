@@ -46,13 +46,14 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
                     val currentOrder: Int = currentTree?.order ?: throw IllegalArgumentException("Heap can't be empty")
                     val firstBinomialTree: BinomialTree<T>? =
                         if ((acc.first as? FList.Cons)?.head?.order == currentOrder && (acc.first as FList.Cons).head != null)
-                                (acc.first as FList.Cons<BinomialTree<T>?>).head?.plus(currentTree)
+                            (acc.first as FList.Cons<BinomialTree<T>?>).head?.plus(currentTree)
                         else null
                     val otherTail: FList<BinomialTree<T>?> = other.trees.filter { currentOtherTree: BinomialTree<T>? ->
                         currentOtherTree?.order in (acc.second until currentOrder)
                     }.reverse()
                     val accTail: FList<BinomialTree<T>?> = otherTail.fold(
-                        if (firstBinomialTree == null) ((acc.first as? FList.Cons) ?: FList.nil()) else ((acc.first as? FList.Cons)?.tail ?: FList.nil())
+                        if (firstBinomialTree == null) ((acc.first as? FList.Cons)
+                            ?: FList.nil()) else ((acc.first as? FList.Cons)?.tail ?: FList.nil())
                     ) { accOfAcc: FList<BinomialTree<T>?>, currentTailTree: BinomialTree<T>? ->
                         FList.Cons(currentTailTree, accOfAcc)
                     }
@@ -66,7 +67,7 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
                         )
                     } else if (firstBinomialTree != null) {
                         Pair<FList<BinomialTree<T>?>, Int>(FList.Cons(firstBinomialTree, accTail), currentOrder + 1)
-                    } else if (necessaryTree != null){
+                    } else if (necessaryTree != null) {
                         val mergedTree: BinomialTree<T>? = necessaryTree?.plus(currentTree) ?: currentTree
                         Pair<FList<BinomialTree<T>?>, Int>(FList.Cons(mergedTree, accTail), currentOrder + 1)
                     } else {
@@ -102,8 +103,17 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
      *
      * Требуемая сложность - O(log(n))
      */
-    fun drop(): BinomialHeap<T> {
 
+    private fun getPairWithMainPartOfBinomialTreeAndWithTreeConsistsDetermineOrder(order: T): Pair<FList<BinomialTree<T>?>, BinomialTree<T>?> =
+        trees.fold(Pair(FList.nil(), null)) { acc: Pair<FList<BinomialTree<T>?>, BinomialTree<T>?>, currentTree: BinomialTree<T>? ->
+            val currentOrder: Int = currentTree?.order ?: throw IllegalArgumentException("BinaryTree can't be empty")
+            return@fold if (order == currentOrder) Pair(acc.first, currentTree) else Pair(FList.Cons(currentTree, acc.first), acc.second)
+        }
+
+    fun drop(): BinomialHeap<T> {
+        val splitHeap = getPairWithMainPartOfBinomialTreeAndWithTreeConsistsDetermineOrder(top())
+        val childrenOfDroppedTree: FList<BinomialTree<T>> = splitHeap.second?.children ?: throw IllegalArgumentException("You can't delete last element or Empty Heap")
+        return BinomialHeap(splitHeap.first) + BinomialHeap(childrenOfDroppedTree.map { tree: BinomialTree<T> -> tree })
     }
 }
 
