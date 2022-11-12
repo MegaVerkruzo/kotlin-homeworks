@@ -46,18 +46,21 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
                     val currentOrder: Int = currentTree?.order ?: throw IllegalArgumentException("Heap can't be empty")
                     val otherTail: FList<BinomialTree<T>?> = other.trees.filter { currentOtherTree: BinomialTree<T>? ->
                         currentOtherTree?.order in (acc.second until currentOrder)
-                    }.reverse()
-                    val mergedAcc: FList<BinomialTree<T>?> = (BinomialHeap(acc.first) + BinomialHeap(otherTail)).trees
-                    val firstBinomialTree: BinomialTree<T>? =
-                        if ((mergedAcc as? FList.Cons)?.head?.order == currentOrder && mergedAcc.head != null)
-                            mergedAcc.head?.plus(currentTree)
-                        else null
-                    val accTail: FList<BinomialTree<T>?> = otherTail.fold(
-                        if (firstBinomialTree == null) ((mergedAcc as? FList.Cons)
-                            ?: FList.nil()) else ((mergedAcc as? FList.Cons)?.tail ?: FList.nil())
-                    ) { accOfAcc: FList<BinomialTree<T>?>, currentTailTree: BinomialTree<T>? ->
-                        FList.Cons(currentTailTree, accOfAcc)
                     }
+                    val mergedAcc: FList<BinomialTree<T>?> = when {
+                        acc.first.isEmpty -> otherTail
+                        otherTail.isEmpty -> acc.first
+                        else -> (BinomialHeap(acc.first) + BinomialHeap(otherTail)).trees
+                    }
+                    val firstBinomialTree: BinomialTree<T>? =
+                        if ((mergedAcc as? FList.Cons)?.head?.order == currentOrder && mergedAcc.head != null) mergedAcc.head.plus(
+                            currentTree
+                        )
+                        else null
+                    val accTail: FList<BinomialTree<T>?> = (
+                            if (firstBinomialTree == null) (mergedAcc as? FList.Cons)
+                            else (mergedAcc as? FList.Cons)?.tail
+                            ) ?: FList.nil()
                     val necessaryTree: BinomialTree<T>? = other.findByOrder(currentOrder)
                     if (firstBinomialTree != null && necessaryTree != null) {
                         Pair<FList<BinomialTree<T>?>, Int>(
@@ -106,14 +109,25 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
      */
 
     private fun getPairWithMainPartOfBinomialTreeAndWithTreeConsistsDetermineOrder(order: T): Pair<FList<BinomialTree<T>?>, BinomialTree<T>?> =
-        trees.fold(Pair(FList.nil(), null)) { acc: Pair<FList<BinomialTree<T>?>, BinomialTree<T>?>, currentTree: BinomialTree<T>? ->
+        trees.fold(
+            Pair(
+                FList.nil(),
+                null
+            )
+        ) { acc: Pair<FList<BinomialTree<T>?>, BinomialTree<T>?>, currentTree: BinomialTree<T>? ->
             val currentMinValue: T = currentTree?.value ?: throw IllegalArgumentException("BinaryTree can't be empty")
-            return@fold if (order == currentMinValue) Pair(acc.first, currentTree) else Pair(FList.Cons(currentTree, acc.first), acc.second)
+            return@fold if (order == currentMinValue) Pair(acc.first, currentTree) else Pair(
+                FList.Cons(
+                    currentTree,
+                    acc.first
+                ), acc.second
+            )
         }
 
     fun drop(): BinomialHeap<T> {
         val splitHeap = getPairWithMainPartOfBinomialTreeAndWithTreeConsistsDetermineOrder(top())
-        val childrenOfDroppedTree: FList<BinomialTree<T>> = splitHeap.second?.children ?: throw IllegalArgumentException("You can't delete last element or Empty Heap")
+        val childrenOfDroppedTree: FList<BinomialTree<T>> =
+            splitHeap.second?.children ?: throw IllegalArgumentException("You can't delete last element or Empty Heap")
         return BinomialHeap(splitHeap.first.reverse()) + BinomialHeap(childrenOfDroppedTree.map { tree: BinomialTree<T> -> tree })
     }
 }
