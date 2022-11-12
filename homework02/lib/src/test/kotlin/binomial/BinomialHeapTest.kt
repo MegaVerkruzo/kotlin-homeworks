@@ -165,7 +165,6 @@ internal class BinomialHeapTest {
         val values2 = 200000 downTo 100001
 
         val heapBig1 = values1.fold(BinomialHeap.single(987654321)) { acc, current ->
-            val checkTree = acc + current
             acc + current
         }
         val heapBig2 = values2.fold(BinomialHeap.single(987654321)) { acc, current ->
