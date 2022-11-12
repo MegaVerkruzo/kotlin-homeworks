@@ -54,7 +54,7 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
                     } else if (firstBinomialTree != null) {
                         FList.Cons(firstBinomialTree, accTail)
                     } else {
-                        val mergedTree: BinomialTree<T>? = necessaryTree?.plus(currentTree ?: throw IllegalArgumentException("Merging uncorrect values"))
+                        val mergedTree: BinomialTree<T>? = necessaryTree?.plus(currentTree ?: throw IllegalArgumentException("Merging uncorrect values")) ?: currentTree
                         FList.Cons(mergedTree, accTail)
                     }
                 }.reverse())
