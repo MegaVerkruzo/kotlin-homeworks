@@ -160,9 +160,9 @@ internal class BinomialHeapTest {
 
     @Test
     fun mergeDescending() {
-        val values = 200000 downTo 0
-        val values1 = 100000 downTo 0
-        val values2 = 200000 downTo 100001
+        val values = 20 downTo 0
+        val values1 = 10 downTo 0
+        val values2 = 20 downTo 11
 
         val heapBig1 = values1.fold(BinomialHeap.single(987654321)) { acc, current ->
             acc + current
