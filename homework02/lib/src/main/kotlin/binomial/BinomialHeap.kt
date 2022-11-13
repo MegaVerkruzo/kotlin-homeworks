@@ -74,8 +74,8 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
                     if (accBuildTree is FList.Cons<BinomialTree<T>?>) {
 
 //                      Определяем, есть ли у нас случай 1 - II
-                        if (accBuildTree.head?.order == currentOrder) {
-                            accActualTail = accBuildTree.tail // не доделано, а если там other есть?
+                        if (accBuildTree.head?.order == currentOrder && otherTail is FList.Nil) {
+                            accActualTail = accBuildTree.tail // не доделано, а если там other есть? - нет, по по условиям того, что firstBinomalTree есть в случае отсутсвия treeOrder
                             firstBinomialTree = accBuildTree.head
                         } else {
                             if (otherTail is FList.Cons) {
@@ -94,7 +94,7 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
                             }
                         }
                     } else {
-                        accActualTail = accBuildTree
+                        accActualTail = otherTail
                         firstBinomialTree = null
                     }
 
