@@ -39,46 +39,80 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
      *
      * Требуемая сложность - O(log(n))
      */
-    override fun plus(other: BinomialHeap<T>): BinomialHeap<T> =
-        BinomialHeap(
+    override fun plus(other: BinomialHeap<T>): BinomialHeap<T> {
+        val thisOrder: Int = (trees as? FList.Cons)?.head?.order ?: -1
+        val otherOrder: Int = (other.trees as? FList.Cons)?.head?.order ?: -1
+        if (thisOrder == -1 && otherOrder == -1) {
+            throw IllegalArgumentException("You can't plus empty heaps")
+        } else if (thisOrder == -1) {
+            return other;
+        } else if (otherOrder == -1) {
+            return this
+        }
+        if (thisOrder < otherOrder) {
+            return other.plus(this)
+        }
+        return BinomialHeap(
             trees.reverse()
                 .fold(Pair(flistOf(), 0)) { acc: Pair<FList<BinomialTree<T>?>, Int>, currentTree: BinomialTree<T>? ->
                     val currentOrder: Int = currentTree?.order ?: throw IllegalArgumentException("Heap can't be empty")
+
+//                  Определяем, если у нас случай 3 - II
+                    val necessaryTree: BinomialTree<T>? = other.findByOrder(currentOrder)
+
+//                  Определяем, если у нас случай 2 - II
                     val otherTail: FList<BinomialTree<T>?> = other.trees.filter { currentOtherTree: BinomialTree<T>? ->
                         currentOtherTree?.order in (acc.second until currentOrder)
                     }
-                    val mergedAcc: FList<BinomialTree<T>?> = when {
-                        acc.first.isEmpty -> otherTail
-                        otherTail.isEmpty -> acc.first
-                        else -> (BinomialHeap(acc.first) + BinomialHeap(otherTail)).trees
-                    }
-                    val firstBinomialTree: BinomialTree<T>? =
-                        if ((mergedAcc as? FList.Cons)?.head?.order == currentOrder && mergedAcc.head != null) mergedAcc.head.plus(
-                            currentTree
-                        )
-                        else null
-                    val accTail: FList<BinomialTree<T>?> = (
-                            if (firstBinomialTree == null) (mergedAcc as? FList.Cons)
-                            else (mergedAcc as? FList.Cons)?.tail
-                            ) ?: FList.nil()
-                    val necessaryTree: BinomialTree<T>? = other.findByOrder(currentOrder)
-                    if (firstBinomialTree != null && necessaryTree != null) {
-                        Pair<FList<BinomialTree<T>?>, Int>(
-                            FList.Cons(
-                                firstBinomialTree,
-                                FList.Cons(necessaryTree, accTail)
-                            ), currentOrder + 1
-                        )
-                    } else if (firstBinomialTree != null) {
-                        Pair<FList<BinomialTree<T>?>, Int>(FList.Cons(firstBinomialTree, accTail), currentOrder + 1)
-                    } else if (necessaryTree != null) {
-                        val mergedTree: BinomialTree<T>? = necessaryTree?.plus(currentTree) ?: currentTree
-                        Pair<FList<BinomialTree<T>?>, Int>(FList.Cons(mergedTree, accTail), currentOrder + 1)
+
+                    val accBuildTree: FList<BinomialTree<T>?> = acc.first
+
+                    val accActualTail: FList<BinomialTree<T>?>
+
+                    val firstBinomialTree: BinomialTree<T>?
+
+                    if (accBuildTree is FList.Cons<BinomialTree<T>?>) {
+
+//                      Определяем, есть ли у нас случай 1 - II
+                        if (accBuildTree.head?.order == currentOrder) {
+                            accActualTail = accBuildTree.tail // не доделано, а если там other есть?
+                            firstBinomialTree = accBuildTree.head
+                        } else {
+                            if (otherTail is FList.Cons) {
+                                val bufAcc: FList.Cons<BinomialTree<T>?> =
+                                    (BinomialHeap(otherTail) + BinomialHeap(accBuildTree)).trees as FList.Cons
+                                if (bufAcc.head?.order == currentOrder) {
+                                    firstBinomialTree = bufAcc.head
+                                    accActualTail = bufAcc.tail
+                                } else {
+                                    firstBinomialTree = null
+                                    accActualTail = bufAcc
+                                }
+                            } else {
+                                accActualTail = accBuildTree
+                                firstBinomialTree = null
+                            }
+                        }
                     } else {
-                        Pair<FList<BinomialTree<T>?>, Int>(FList.Cons(currentTree, accTail), currentOrder + 1)
+                        accActualTail = accBuildTree
+                        firstBinomialTree = null
+                    }
+
+                    if (firstBinomialTree == null && necessaryTree == null) {
+                        Pair(FList.Cons(currentTree, accActualTail), currentOrder + 1)
+                    } else if (firstBinomialTree != null && necessaryTree == null) {
+                        val mergedTree = firstBinomialTree + currentTree
+                        Pair(FList.Cons(mergedTree, accActualTail), currentOrder + 1)
+                    } else if (firstBinomialTree == null && necessaryTree != null) {
+                        val mergedTree = currentTree + necessaryTree
+                        Pair(FList.Cons(mergedTree, accActualTail), currentOrder + 1)
+                    } else { // firstBinomialTree != null && necessaryTree != null
+                        val mergedTree = currentTree + (necessaryTree as BinomialTree<T>)
+                        Pair(FList.Cons(mergedTree, acc.first), currentOrder + 1)
                     }
                 }.first
         )
+    }
 
 
     /*
