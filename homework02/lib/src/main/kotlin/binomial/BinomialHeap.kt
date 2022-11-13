@@ -23,7 +23,7 @@ package binomial
  * top - взятие минимального элемента
  * drop - удаление минимального элемента
  */
-class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FList<BinomialTree<T>?>) :
+class BinomialHeap<T : Comparable<T>> private constructor(public val trees: FList<BinomialTree<T>?>) :
     SelfMergeable<BinomialHeap<T>> {
     companion object {
         fun <T : Comparable<T>> single(value: T): BinomialHeap<T> = BinomialHeap(flistOf(BinomialTree.single(value)))
@@ -75,7 +75,8 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
 
 //                      Определяем, есть ли у нас случай 1 - II
                         if (accBuildTree.head?.order == currentOrder && otherTail is FList.Nil) {
-                            accActualTail = accBuildTree.tail // не доделано, а если там other есть? - нет, по по условиям того, что firstBinomalTree есть в случае отсутсвия treeOrder
+                            accActualTail =
+                                accBuildTree.tail // не доделано, а если там other есть? - нет, по по условиям того, что firstBinomalTree есть в случае отсутсвия treeOrder
                             firstBinomialTree = accBuildTree.head
                         } else {
                             if (otherTail is FList.Cons) {
@@ -108,7 +109,7 @@ class BinomialHeap<T : Comparable<T>> private constructor(private val trees: FLi
                         Pair(FList.Cons(mergedTree, accActualTail), currentOrder + 1)
                     } else { // firstBinomialTree != null && necessaryTree != null
                         val mergedTree = currentTree + (necessaryTree as BinomialTree<T>)
-                        Pair(FList.Cons(mergedTree, acc.first), currentOrder + 1)
+                        Pair(FList.Cons(mergedTree, FList.Cons(firstBinomialTree, accActualTail)), currentOrder + 1)
                     }
                 }.first
         )
